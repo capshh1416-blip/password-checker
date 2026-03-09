@@ -1,125 +1,228 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Password Strength Checker</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="container">
-        <h2>Password Strength Checker</h2>
+:root{
+	--card-width: 360px;
+	--glass-bg-1: rgba(255,255,255,0.10);
+	--glass-bg-2: rgba(255,255,255,0.06);
+	--border-glow: rgba(255,255,255,0.18);
+	--text-weak: #ff6b6b;
+	--text-mid: #ffb86b;
+	--text-strong: #8efc9a;
+}
 
-                <label for="password">Enter password</label>
-                <div class="input-row">
-                    <input type="password" id="password" placeholder="Type a strong password" autocomplete="off">
-                    <div class="controls">
-                        <button class="btn" id="toggle" type="button" aria-pressed="false" title="Show password">Show</button>
-                        <button class="btn" id="copy" type="button" title="Copy password">Copy</button>
-                    </div>
-                </div>
+/* Layout + background */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+	margin:0;
+	padding:0;
+	font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	height:100vh;
+	display:flex;
+	justify-content:center;
+	align-items:center;
+	position:relative;
+	overflow:hidden;
+	background: linear-gradient(120deg,#223a7a 0%, #6a11cb 50%, #ff6a88 100%);
+}
 
-                <div class="strength-bar" aria-hidden="true">
-                    <div id="strength" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width:0%"></div>
-                </div>
+/* decorative blurred shapes */
+body::before, body::after{
+	content:'';
+	position:absolute;
+	z-index:0;
+	filter: blur(64px);
+	opacity:0.45;
+}
+body::before{
+	width:50vmax;height:40vmax;left:-15vmax;top:-10vmax;
+	background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.12), transparent 25%), linear-gradient(135deg, rgba(255,255,255,0.03), transparent 60%);
+}
+body::after{
+	width:45vmax;height:45vmax;right:-10vmax;bottom:-15vmax;
+	background: radial-gradient(circle at 70% 70%, rgba(255,255,255,0.08), transparent 25%), linear-gradient(45deg, rgba(255,255,255,0.02), transparent 70%);
+}
 
-                <p id="message"></p>
+.container{
+	position:relative;
+	z-index:1;
+	width:var(--card-width);
+	padding:28px 28px;
+	border-radius:16px;
+	background: linear-gradient(180deg, var(--glass-bg-1), var(--glass-bg-2));
+	-webkit-backdrop-filter: blur(10px);
+	backdrop-filter: blur(10px);
+	border: 1px solid var(--border-glow);
+	box-shadow: 0 10px 30px rgba(7,10,36,0.35), inset 0 1px 0 rgba(255,255,255,0.02);
+	color: #fff;
+}
 
-        <ul class="tips">
-            <li>Use at least 8 characters</li>
-            <li>Mix uppercase and lowercase letters</li>
-            <li>Include numbers and special characters</li>
-        </ul>
-    </div>
+h2{
+	margin:0 0 14px 0;
+	font-size:20px;
+	font-weight:700;
+	letter-spacing:0.2px;
+	background: linear-gradient(90deg,#ffffff,#e8e8ff);
+	-webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
 
-    <script>
-            const input = document.getElementById('password');
-            const strengthEl = document.getElementById('strength');
-            const messageEl = document.getElementById('message');
-            const toggleBtn = document.getElementById('toggle');
-            const copyBtn = document.getElementById('copy');
+label{
+	display:block;
+	font-size:13px;
+	color: rgba(255,255,255,0.9);
+	margin:8px 0 6px 0;
+}
 
-            // small helper for temporary messages
-            function flashMessage(text, color){
-                messageEl.textContent = text;
-                if(color) messageEl.style.color = color;
-                setTimeout(()=>{ if(input.value.length) checkPasswordStrength(); else messageEl.textContent = ''; }, 1500);
-            }
+.input-row{
+	display:flex;
+	gap:8px;
+	align-items:center;
+}
 
-        function checkPasswordStrength() {
-            const password = input.value || '';
-            let strength = 0;
-            let feedback = [];
+input[type="password"], input[type="text"]{
+	flex:1;
+	padding:12px 14px;
+	border-radius:10px;
+	border:1px solid rgba(255,255,255,0.12);
+	background: rgba(255,255,255,0.03);
+	color: #fff;
+	font-size:15px;
+	transition: box-shadow .18s ease, border-color .18s ease, background .18s ease;
+}
 
-            if (password.length >= 8) {
-                strength += 25;
-            } else if (password.length > 0) {
-                feedback.push('Use at least 8 characters');
-            }
+input::placeholder{color: rgba(255,255,255,0.6)}
 
-            if (/[A-Z]/.test(password)) strength += 25;
-            else if (password.length > 0) feedback.push('Add uppercase letters');
+input:focus{
+	outline:none;
+	border-color: rgba(255,255,255,0.6);
+	box-shadow:0 6px 18px rgba(0,0,0,0.28), 0 0 18px rgba(255,255,255,0.03) inset;
+	background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+}
 
-            if (/[a-z]/.test(password)) strength += 25;
-            else if (password.length > 0) feedback.push('Add lowercase letters');
+.controls{
+	display:flex;
+	gap:8px;
+}
 
-            if (/[0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) strength += 25;
-            else if (password.length > 0) feedback.push('Include numbers or symbols');
+.btn{
+	--btn-size:36px;
+	height:var(--btn-size);
+	min-width:44px;
+	padding:6px 10px;
+	border-radius:10px;
+	border:1px solid rgba(255,255,255,0.12);
+	background: rgba(255,255,255,0.03);
+	color:#fff;
+	font-size:13px;
+	cursor:pointer;
+	transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+}
 
-                    // update UI
-                    strengthEl.style.width = strength + '%';
-                    strengthEl.setAttribute('aria-valuenow', strength);
+.btn:hover{transform:translateY(-2px);background:rgba(255,255,255,0.05)}
 
-                    // change gradient & glow based on level
-                    if(password.length === 0){
-                        strengthEl.style.background = 'linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))';
-                        strengthEl.classList.remove('glow');
-                        messageEl.textContent = '';
-                        messageEl.style.color = 'rgba(255,255,255,0.95)';
-                    } else if (strength < 50) {
-                        strengthEl.style.background = 'linear-gradient(90deg,#ff416c 0%, #ff4b2b 100%)';
-                        strengthEl.classList.remove('glow');
-                        messageEl.textContent = 'Weak — ' + feedback.join(', ');
-                        messageEl.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-weak') || '#ff6b6b';
-                    } else if (strength < 75) {
-                        strengthEl.style.background = 'linear-gradient(90deg,#ffb86b 0%, #f76b8a 100%)';
-                        strengthEl.classList.remove('glow');
-                        messageEl.textContent = 'Moderate — ' + (feedback.length ? feedback.join(', ') : 'Good, but could be stronger');
-                        messageEl.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-mid') || '#ffb86b';
-                    } else {
-                        strengthEl.style.background = 'linear-gradient(90deg,#7efc88 0%, #2bd9a7 100%)';
-                        strengthEl.classList.add('glow');
-                        messageEl.textContent = 'Strong — Good job!';
-                        messageEl.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-strong') || '#8efc9a';
-                    }
-        }
-                input.addEventListener('input', checkPasswordStrength);
+.btn:active{transform:translateY(0)}
 
-                // toggle show/hide
-                toggleBtn.addEventListener('click', ()=>{
-                    const isHidden = input.type === 'password';
-                    input.type = isHidden ? 'text' : 'password';
-                    toggleBtn.textContent = isHidden ? 'Hide' : 'Show';
-                    toggleBtn.setAttribute('aria-pressed', String(!isHidden));
-                    input.focus();
-                });
+.strength-bar{
+	width:100%;
+	height:12px;
+	background: rgba(255,255,255,0.04);
+	border-radius:10px;
+	margin-top:14px;
+	overflow:hidden;
+	border:1px solid rgba(255,255,255,0.04);
+}
 
-                // copy to clipboard
-                copyBtn.addEventListener('click', async ()=>{
-                    try{
-                        if(!input.value) { flashMessage('Nothing to copy', 'rgba(255,255,255,0.9)'); return; }
-                        await navigator.clipboard.writeText(input.value);
-                        flashMessage('Copied to clipboard', 'rgba(142,252,154,1)');
-                    }catch(e){
-                        // fallback
-                        input.select();
-                        document.execCommand('copy');
-                        flashMessage('Copied', 'rgba(142,252,154,1)');
-                    }
-                });
+#strength{
+	height:100%;
+	width:0%;
+	border-radius:10px;
+	transition: width .45s cubic-bezier(.2,.9,.2,1), box-shadow .2s ease, filter .2s ease;
+	background: linear-gradient(90deg, #ff416c 0%, #ff4b2b 100%);
+	box-shadow: inset 0 -2px 8px rgba(0,0,0,0.18);
+}
 
-                // initial run
-                checkPasswordStrength();
-    </script>
-</body>
-</html>
+#strength.glow{
+	box-shadow: 0 8px 30px rgba(150, 230, 180, 0.18), inset 0 -2px 8px rgba(0,0,0,0.18);
+}
+
+#message{
+	margin-top:12px;
+	font-weight:600;
+	font-size:14px;
+	color: rgba(255,255,255,0.95);
+}
+
+.tips{
+	margin-top:12px;
+	padding-left:18px;
+	font-size:13px;
+	color: rgba(255,255,255,0.8);
+}
+
+.tips li{margin-bottom:6px}
+
+@media (max-width:420px){
+	.container{width:92%; padding:18px}
+	.btn{min-width:40px}
+}
+
+/* small utility */
+.muted{opacity:0.85}
+
+input{
+	width:100%;
+	padding:12px;
+	border:1px solid rgba(255,255,255,0.22);
+	border-radius:8px;
+	font-size:16px;
+	outline:none;
+	transition:0.25s ease;
+	background: rgba(255,255,255,0.06);
+	color: #fff;
+}
+
+input::placeholder{
+	color: rgba(255,255,255,0.7);
+}
+
+input:focus{
+	border-color: rgba(255,255,255,0.9);
+	box-shadow: 0 4px 18px rgba(102,126,234,0.18);
+	background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+}
+
+.strength-bar{
+	width:100%;
+	height:12px;
+	background: rgba(255,255,255,0.06);
+	border-radius:10px;
+	margin-top:15px;
+	overflow:hidden;
+	border: 1px solid rgba(255,255,255,0.06);
+}
+
+#strength{
+	height:100%;
+	width:0%;
+	border-radius:10px;
+	transition:0.4s ease;
+	/* colorful gradient that represents strength */
+	background: linear-gradient(90deg, #ff8a00 0%, #e52e71 40%, #9b5de5 70%, #4ac29a 100%);
+	box-shadow: inset 0 -2px 6px rgba(0,0,0,0.12);
+}
+
+#message{
+	margin-top:12px;
+	font-weight:bold;
+	font-size:15px;
+	color: rgba(255,255,255,0.95);
+}
+
+.tips{
+	margin-top:15px;
+	font-size:13px;
+	color: rgba(255,255,255,0.85);
+	text-align:left;
+}
+
+.tips li{
+	margin-bottom:5px;
+}
