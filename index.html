@@ -1,91 +1,125 @@
-print("""
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Password Strength Checker</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        #password-strength-meter {
-            height: 10px;
-            width: 100%;
-            background-color: #eee;
-            margin-top: 10px;
-        }
-        #password-strength-meter div {
-            height: 100%;
-            width: 0%;
-            background-color: #ddd;
-            transition: width 0.3s ease-in-out;
-        }
-        #password-result {
-            margin-top: 10px;
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Password Strength Checker</h1>
-    <label for="password">Enter Password:</label>
-    <input type="password" id="password" onkeyup="checkPasswordStrength()">
-    <div id="password-strength-meter">
-        <div id="password-strength-bar"></div>
+    <div class="container">
+        <h2>Password Strength Checker</h2>
+
+                <label for="password">Enter password</label>
+                <div class="input-row">
+                    <input type="password" id="password" placeholder="Type a strong password" autocomplete="off">
+                    <div class="controls">
+                        <button class="btn" id="toggle" type="button" aria-pressed="false" title="Show password">Show</button>
+                        <button class="btn" id="copy" type="button" title="Copy password">Copy</button>
+                    </div>
+                </div>
+
+                <div class="strength-bar" aria-hidden="true">
+                    <div id="strength" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width:0%"></div>
+                </div>
+
+                <p id="message"></p>
+
+        <ul class="tips">
+            <li>Use at least 8 characters</li>
+            <li>Mix uppercase and lowercase letters</li>
+            <li>Include numbers and special characters</li>
+        </ul>
     </div>
-    <p id="password-result"></p>
 
     <script>
-        function checkPasswordStrength() {
-            const password = document.getElementById('password').value;
-            const resultElement = document.getElementById('password-result');
-            const strengthBar = document.getElementById('password-strength-bar');
-            let strength = 0;
-            let feedback = '';
-            let barColor = '';
+            const input = document.getElementById('password');
+            const strengthEl = document.getElementById('strength');
+            const messageEl = document.getElementById('message');
+            const toggleBtn = document.getElementById('toggle');
+            const copyBtn = document.getElementById('copy');
 
-            // Criteria:
-            // 1. Length (at least 8 characters)
+            // small helper for temporary messages
+            function flashMessage(text, color){
+                messageEl.textContent = text;
+                if(color) messageEl.style.color = color;
+                setTimeout(()=>{ if(input.value.length) checkPasswordStrength(); else messageEl.textContent = ''; }, 1500);
+            }
+
+        function checkPasswordStrength() {
+            const password = input.value || '';
+            let strength = 0;
+            let feedback = [];
+
             if (password.length >= 8) {
                 strength += 25;
-            } else {
-                feedback += 'Length: Must be at least 8 characters. ';
+            } else if (password.length > 0) {
+                feedback.push('Use at least 8 characters');
             }
 
-            // 2. Uppercase letters
-            if (/[A-Z]/.test(password)) {
-                strength += 25;
-            }
+            if (/[A-Z]/.test(password)) strength += 25;
+            else if (password.length > 0) feedback.push('Add uppercase letters');
 
-            // 3. Lowercase letters
-            if (/[a-z]/.test(password)) {
-                strength += 25;
-            }
+            if (/[a-z]/.test(password)) strength += 25;
+            else if (password.length > 0) feedback.push('Add lowercase letters');
 
-            // 4. Numbers or special characters
-            if (/[0-9!@#$%^&*()]/.test(password)) {
-                strength += 25;
-            }
+            if (/[0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) strength += 25;
+            else if (password.length > 0) feedback.push('Include numbers or symbols');
 
-            // Determine strength level and bar color
-            if (password.length === 0) {
-                resultElement.textContent = '';
-                strengthBar.style.width = '0%';
-            } else if (strength < 50) {
-                resultElement.textContent = 'Weak: ' + feedback;
-                barColor = 'red';
-            } else if (strength < 75) {
-                resultElement.textContent = 'Moderate: ' + feedback;
-                barColor = 'orange';
-            } else {
-                resultElement.textContent = 'Strong: ' + feedback;
-                barColor = 'green';
-            }
+                    // update UI
+                    strengthEl.style.width = strength + '%';
+                    strengthEl.setAttribute('aria-valuenow', strength);
 
-            strengthBar.style.width = strength + '%';
-            strengthBar.style.backgroundColor = barColor;
+                    // change gradient & glow based on level
+                    if(password.length === 0){
+                        strengthEl.style.background = 'linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))';
+                        strengthEl.classList.remove('glow');
+                        messageEl.textContent = '';
+                        messageEl.style.color = 'rgba(255,255,255,0.95)';
+                    } else if (strength < 50) {
+                        strengthEl.style.background = 'linear-gradient(90deg,#ff416c 0%, #ff4b2b 100%)';
+                        strengthEl.classList.remove('glow');
+                        messageEl.textContent = 'Weak — ' + feedback.join(', ');
+                        messageEl.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-weak') || '#ff6b6b';
+                    } else if (strength < 75) {
+                        strengthEl.style.background = 'linear-gradient(90deg,#ffb86b 0%, #f76b8a 100%)';
+                        strengthEl.classList.remove('glow');
+                        messageEl.textContent = 'Moderate — ' + (feedback.length ? feedback.join(', ') : 'Good, but could be stronger');
+                        messageEl.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-mid') || '#ffb86b';
+                    } else {
+                        strengthEl.style.background = 'linear-gradient(90deg,#7efc88 0%, #2bd9a7 100%)';
+                        strengthEl.classList.add('glow');
+                        messageEl.textContent = 'Strong — Good job!';
+                        messageEl.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-strong') || '#8efc9a';
+                    }
         }
+                input.addEventListener('input', checkPasswordStrength);
+
+                // toggle show/hide
+                toggleBtn.addEventListener('click', ()=>{
+                    const isHidden = input.type === 'password';
+                    input.type = isHidden ? 'text' : 'password';
+                    toggleBtn.textContent = isHidden ? 'Hide' : 'Show';
+                    toggleBtn.setAttribute('aria-pressed', String(!isHidden));
+                    input.focus();
+                });
+
+                // copy to clipboard
+                copyBtn.addEventListener('click', async ()=>{
+                    try{
+                        if(!input.value) { flashMessage('Nothing to copy', 'rgba(255,255,255,0.9)'); return; }
+                        await navigator.clipboard.writeText(input.value);
+                        flashMessage('Copied to clipboard', 'rgba(142,252,154,1)');
+                    }catch(e){
+                        // fallback
+                        input.select();
+                        document.execCommand('copy');
+                        flashMessage('Copied', 'rgba(142,252,154,1)');
+                    }
+                });
+
+                // initial run
+                checkPasswordStrength();
     </script>
 </body>
 </html>
-""")
