@@ -1,0 +1,91 @@
+print("""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Password Strength Checker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #password-strength-meter {
+            height: 10px;
+            width: 100%;
+            background-color: #eee;
+            margin-top: 10px;
+        }
+        #password-strength-meter div {
+            height: 100%;
+            width: 0%;
+            background-color: #ddd;
+            transition: width 0.3s ease-in-out;
+        }
+        #password-result {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Password Strength Checker</h1>
+    <label for="password">Enter Password:</label>
+    <input type="password" id="password" onkeyup="checkPasswordStrength()">
+    <div id="password-strength-meter">
+        <div id="password-strength-bar"></div>
+    </div>
+    <p id="password-result"></p>
+
+    <script>
+        function checkPasswordStrength() {
+            const password = document.getElementById('password').value;
+            const resultElement = document.getElementById('password-result');
+            const strengthBar = document.getElementById('password-strength-bar');
+            let strength = 0;
+            let feedback = '';
+            let barColor = '';
+
+            // Criteria:
+            // 1. Length (at least 8 characters)
+            if (password.length >= 8) {
+                strength += 25;
+            } else {
+                feedback += 'Length: Must be at least 8 characters. ';
+            }
+
+            // 2. Uppercase letters
+            if (/[A-Z]/.test(password)) {
+                strength += 25;
+            }
+
+            // 3. Lowercase letters
+            if (/[a-z]/.test(password)) {
+                strength += 25;
+            }
+
+            // 4. Numbers or special characters
+            if (/[0-9!@#$%^&*()]/.test(password)) {
+                strength += 25;
+            }
+
+            // Determine strength level and bar color
+            if (password.length === 0) {
+                resultElement.textContent = '';
+                strengthBar.style.width = '0%';
+            } else if (strength < 50) {
+                resultElement.textContent = 'Weak: ' + feedback;
+                barColor = 'red';
+            } else if (strength < 75) {
+                resultElement.textContent = 'Moderate: ' + feedback;
+                barColor = 'orange';
+            } else {
+                resultElement.textContent = 'Strong: ' + feedback;
+                barColor = 'green';
+            }
+
+            strengthBar.style.width = strength + '%';
+            strengthBar.style.backgroundColor = barColor;
+        }
+    </script>
+</body>
+</html>
+""")
